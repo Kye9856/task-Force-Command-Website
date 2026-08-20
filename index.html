@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Force Reaper — Reforger Milsim Unit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil:wght@500;600;700;800&family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================= TOKENS ============================= */
+:root{
+  --bg-void:#0a0c07;
+  --bg-panel:#141710;
+  --bg-raised:#1c2016;
+  --bg-raised-2:#242a1c;
+  --olive:#7c8a52;
+  --olive-bright:#aebd7c;
+  --oxide:#a8402b;
+  --oxide-bright:#c85536;
+  --bone:#e9e4d3;
+  --bone-dim:#9c9686;
+  --line:#33372a;
+  --line-bright:#4a5038;
+  --font-display:'Big Shoulders Stencil',sans-serif;
+  --font-body:'Archivo',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;}
+}
+
+body{
+  background:var(--bg-void);
+  color:var(--bone);
+  font-family:var(--font-body);
+  line-height:1.65;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+
+img,svg{display:block;max-width:100%;}
+a{color:inherit;}
+button{font-family:inherit;}
+ul{list-style:none;}
+
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:0.75rem;
+  letter-spacing:0.22em;
+  text-transform:uppercase;
+  color:var(--olive-bright);
+}
+
+h1,h2,h3{
+  font-family:var(--font-display);
+  text-transform:uppercase;
+  letter-spacing:0.02em;
+  font-weight:700;
+  color:var(--bone);
+}
+h1{font-size:clamp(2.6rem,6vw,4.6rem);line-height:0.98;}
+h2{font-size:clamp(1.8rem,4vw,2.6rem);line-height:1.05;margin-bottom:0.4em;}
+h3{font-size:1.15rem;letter-spacing:0.06em;}
+
+p{color:var(--bone-dim);max-width:60ch;}
+p.lead{color:var(--bone);font-size:1.1rem;max-width:56ch;}
+
+.section-intro{max-width:640px;margin-bottom:3rem;}
+.section-intro h2{color:var(--bone);}
+
+/* ============================= SKIP LINK ============================= */
+.skip-link{
+  position:absolute;top:-100px;left:1rem;background:var(--oxide);color:var(--bone);
+  padding:0.7rem 1.2rem;font-family:var(--font-mono);text-transform:uppercase;font-size:0.8rem;
+  z-index:1000;transition:top .2s;
+}
+.skip-link:focus{top:1rem;}
+
+:focus-visible{outline:2px solid var(--oxide-bright);outline-offset:3px;}
+
+/* ============================= BACKDROP ============================= */
+.backdrop{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 20% -10%, rgba(124,138,82,0.10), transparent 55%),
+    radial-gradient(ellipse at 90% 110%, rgba(168,64,43,0.08), transparent 55%);
+}
+.backdrop svg{position:absolute;inset:0;width:100%;height:100%;opacity:0.07;}
+.backdrop-grid{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:64px 64px;
+  opacity:0.12;
+}
+
+/* ============================= HEADER / NAV ============================= */
+header.site-head{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem 1.75rem;
+  border-bottom:1px solid var(--line);
+}
+/* Blur/background live on a pseudo-element rather than the header itself.
+   backdrop-filter (and transform/filter) on an element makes it the
+   containing block for any position:fixed descendant — which was
+   trapping the mobile nav inside the header's own small box instead of
+   letting it cover the viewport. Keeping the filter off the real header
+   element avoids that. */
+header.site-head::before{
+  content:"";
+  position:absolute;inset:0;
+  background:rgba(10,12,7,0.88);
+  backdrop-filter:blur(6px);
+  z-index:-1;
+}
+.brand{display:flex;align-items:center;gap:0.7rem;text-decoration:none;}
+.brand .logo-mark{width:38px;height:38px;flex-shrink:0;}
+.brand-word{font-family:var(--font-display);font-size:1.05rem;letter-spacing:0.08em;color:var(--bone);line-height:1.1;}
+.brand-word small{display:block;font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.2em;color:var(--olive-bright);font-weight:400;}
+
+nav.primary-nav{display:flex;align-items:center;gap:0.25rem;}
+.nav__link{
+  font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--bone-dim);text-decoration:none;padding:0.6rem 0.9rem;position:relative;
+  border-bottom:2px solid transparent;transition:color .2s, border-color .2s;
+}
+.nav__link:hover{color:var(--bone);}
+.nav__link.is-active{color:var(--olive-bright);border-color:var(--oxide);}
+.nav__link--cta{
+  background:var(--oxide);color:var(--bone) !important;border:2px solid var(--oxide);
+  border-radius:2px;margin-left:0.5rem;
+}
+.nav__link--cta:hover{background:var(--oxide-bright);border-color:var(--oxide-bright);}
+
+.nav-toggle{
+  display:none;background:transparent;border:1px solid var(--line-bright);color:var(--bone);
+  font-family:var(--font-mono);font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;
+  padding:0.55rem 0.9rem;cursor:pointer;
+}
+
+/* ============================= LAYOUT ============================= */
+main{position:relative;z-index:1;}
+.page{display:none;}
+.page.is-active{display:block;animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.wrap{max-width:1120px;margin:0 auto;padding:0 1.75rem;}
+
+/* ============================= BUTTONS ============================= */
+.btn{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  font-family:var(--font-mono);font-size:0.82rem;letter-spacing:0.15em;text-transform:uppercase;
+  padding:0.95rem 1.7rem;border:2px solid transparent;border-radius:2px;cursor:pointer;
+  text-decoration:none;transition:background .2s, border-color .2s, transform .15s;
+}
+.btn:active{transform:translateY(1px);}
+.btn--primary{background:var(--oxide);border-color:var(--oxide);color:var(--bone);}
+.btn--primary:hover{background:var(--oxide-bright);border-color:var(--oxide-bright);}
+.btn--ghost{background:transparent;border-color:var(--olive);color:var(--olive-bright);}
+.btn--ghost:hover{background:rgba(124,138,82,0.12);border-color:var(--olive-bright);}
+.btn-row{display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem;}
+
+/* ============================= HERO ============================= */
+.hero{padding:5.5rem 0 4rem;position:relative;overflow:hidden;}
+.hero-emblem-watermark{
+  position:absolute;right:-60px;top:-40px;width:480px;height:480px;opacity:0.05;pointer-events:none;
+}
+.status-line{
+  display:flex;align-items:center;gap:0.6rem;font-family:var(--font-mono);
+  font-size:0.78rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--olive-bright);
+  margin-bottom:1.3rem;min-height:1.2em;
+}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--oxide-bright);flex-shrink:0;
+  box-shadow:0 0 0 0 rgba(200,85,54,0.6);animation:pulse 2s infinite;}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(200,85,54,0.5);}
+  70%{box-shadow:0 0 0 8px rgba(200,85,54,0);}
+  100%{box-shadow:0 0 0 0 rgba(200,85,54,0);}
+}
+.type-cursor{display:inline-block;width:8px;height:1em;background:var(--oxide-bright);margin-left:2px;
+  animation:blink 1s step-end infinite;vertical-align:text-bottom;}
+@keyframes blink{50%{opacity:0;}}
+
+.hero h1{max-width:14ch;margin-bottom:1.1rem;}
+.hero h1 span{color:var(--oxide-bright);}
+
+.stat-strip{
+  display:flex;flex-wrap:wrap;gap:0;margin-top:3rem;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+.stat{flex:1 1 140px;padding:1.1rem 1.4rem;border-right:1px solid var(--line);}
+.stat:last-child{border-right:none;}
+.stat b{display:block;font-family:var(--font-display);font-size:1.5rem;color:var(--bone);letter-spacing:0.03em;}
+.stat span{font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--bone-dim);}
+
+/* ============================= PILLARS / CARDS ============================= */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;}
+.card{
+  background:var(--bg-panel);border:1px solid var(--line);padding:1.9rem;
+  transition:border-color .2s, transform .2s;
+}
+.card:hover{border-color:var(--line-bright);transform:translateY(-3px);}
+.card .index{font-family:var(--font-mono);color:var(--oxide-bright);font-size:0.78rem;letter-spacing:0.1em;margin-bottom:0.8rem;display:block;}
+.card h3{margin-bottom:0.6rem;color:var(--olive-bright);}
+.card p{color:var(--bone-dim);font-size:0.95rem;}
+
+section.block{padding:4.5rem 0;}
+section.block.alt{background:linear-gradient(180deg, transparent, rgba(124,138,82,0.04), transparent);}
+
+/* ============================= STAMP ============================= */
+.stamp{
+  display:inline-block;border:2px dashed var(--oxide);color:var(--oxide-bright);
+  font-family:var(--font-mono);text-transform:uppercase;font-size:0.7rem;letter-spacing:0.2em;
+  padding:0.35rem 0.9rem;transform:rotate(-4deg);
+}
+
+/* ============================= BRIEFING PAGE ============================= */
+.briefing-section{margin-bottom:3rem;padding-bottom:3rem;border-bottom:1px solid var(--line);}
+.briefing-section:last-child{border-bottom:none;}
+.not-list li{
+  font-family:var(--font-mono);font-size:0.9rem;color:var(--bone-dim);padding:0.6rem 0;
+  border-bottom:1px solid var(--line);display:flex;gap:0.7rem;
+}
+.not-list li:before{content:"✕";color:var(--oxide);flex-shrink:0;}
+
+/* ============================= ORG CHART ============================= */
+.org-level{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap;}
+.org-connector{width:2px;height:34px;background:var(--line-bright);margin:0 auto;}
+.org-card{
+  background:var(--bg-panel);border:1px solid var(--line);padding:1.4rem 1.6rem;text-align:center;
+  min-width:210px;flex:1 1 210px;max-width:280px;
+}
+.org-card b{font-family:var(--font-display);letter-spacing:0.04em;color:var(--olive-bright);display:block;font-size:1rem;margin-bottom:0.4rem;}
+.org-card span{font-family:var(--font-mono);font-size:0.8rem;color:var(--bone-dim);}
+
+/* ============================= SELECTION ============================= */
+.req-list{display:grid;grid-template-columns:repeat(2,1fr);gap:0.9rem;margin-top:1.5rem;}
+.req-item{
+  display:flex;gap:0.8rem;align-items:flex-start;background:var(--bg-panel);border:1px solid var(--line);
+  padding:1rem 1.2rem;font-size:0.92rem;
+}
+.req-item:before{content:"▸";color:var(--oxide-bright);font-family:var(--font-mono);flex-shrink:0;}
+
+.steps{margin-top:1.5rem;display:flex;flex-direction:column;gap:0;}
+.step{
+  display:flex;gap:1.4rem;padding:1.6rem 0;border-top:1px solid var(--line);
+}
+.step:last-child{border-bottom:1px solid var(--line);}
+.step .num{
+  font-family:var(--font-display);font-size:2rem;color:var(--line-bright);flex-shrink:0;width:2ch;
+}
+.step h3{color:var(--bone);margin-bottom:0.3rem;}
+.step p{font-size:0.92rem;}
+
+/* ============================= FIELD NOTES ============================= */
+.logo-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;}
+.logo-card{
+  background:var(--bg-panel);border:1px solid var(--line);padding:2.2rem 1.4rem;text-align:center;
+}
+.logo-card .logo-full{width:120px;height:auto;margin:0 auto 1rem;}
+.logo-card .logo-mark{width:80px;height:80px;margin:0 auto 1rem;}
+.logo-card .logo-wordmark{width:100%;height:auto;margin:0.6rem auto;}
+.logo-card b{display:block;font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.16em;
+  text-transform:uppercase;color:var(--olive-bright);margin-top:0.6rem;}
+.logo-card span{display:block;font-family:var(--font-mono);font-size:0.68rem;color:var(--bone-dim);margin-top:0.3rem;}
+
+.ao-panel{background:var(--bg-panel);border:1px solid var(--line);padding:1.5rem;margin-top:1rem;}
+.ao-panel svg{width:100%;height:auto;}
+
+.manifest{width:100%;border-collapse:collapse;margin-top:1rem;font-family:var(--font-mono);font-size:0.85rem;}
+.manifest th{
+  text-align:left;text-transform:uppercase;letter-spacing:0.12em;font-size:0.7rem;color:var(--olive-bright);
+  padding:0.7rem 0.9rem;border-bottom:1px solid var(--line-bright);
+}
+.manifest td{padding:0.75rem 0.9rem;border-bottom:1px solid var(--line);color:var(--bone-dim);}
+.manifest tr:hover td{color:var(--bone);}
+
+/* ============================= ENLIST ============================= */
+.enlist-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:2.5rem;align-items:start;}
+.discord-panel{background:var(--bg-panel);border:1px solid var(--line);padding:2rem;}
+.discord-panel p{font-size:0.92rem;margin-bottom:1.4rem;}
+
+form.enlist-form{background:var(--bg-panel);border:1px solid var(--line);padding:2rem;}
+.form-row{margin-bottom:1.3rem;}
+.form-row label{
+  display:block;font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--olive-bright);margin-bottom:0.5rem;
+}
+.form-row input[type="text"],
+.form-row input[type="email"],
+.form-row input[type="number"],
+.form-row select,
+.form-row textarea{
+  width:100%;background:var(--bg-void);border:1px solid var(--line-bright);color:var(--bone);
+  font-family:var(--font-body);font-size:0.95rem;padding:0.75rem 0.9rem;
+}
+.form-row textarea{min-height:90px;resize:vertical;}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--oxide-bright);}
+.check-row{display:flex;align-items:center;gap:0.6rem;}
+.check-row input{width:16px;height:16px;accent-color:var(--oxide);}
+.check-row label{margin:0;font-family:var(--font-body);font-size:0.85rem;color:var(--bone-dim);text-transform:none;letter-spacing:0;}
+.field-error{color:var(--oxide-bright);font-family:var(--font-mono);font-size:0.75rem;margin-top:0.4rem;display:none;}
+.form-row.has-error input,.form-row.has-error select,.form-row.has-error textarea{border-color:var(--oxide-bright);}
+.form-row.has-error .field-error{display:block;}
+.form-section-head{
+  color:var(--olive-bright);font-family:var(--font-display);font-size:1.15rem;letter-spacing:0.06em;
+  margin:1.8rem 0 1rem;border-bottom:1px solid var(--line);padding-bottom:0.5rem;text-transform:uppercase;
+}
+.form-section-head:first-of-type{margin-top:0;}
+
+.confirm-panel{display:none;background:var(--bg-panel);border:1px solid var(--olive);padding:2.2rem;}
+.confirm-panel.is-visible{display:block;}
+.confirm-panel .stamp{margin-bottom:1rem;}
+.confirm-panel .ref{font-family:var(--font-mono);color:var(--bone-dim);font-size:0.85rem;margin-top:1rem;}
+
+/* ============================= FOOTER ============================= */
+footer.site-foot{
+  border-top:1px solid var(--line);padding:2.5rem 0;margin-top:2rem;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1.5rem;
+}
+.foot-brand{display:flex;align-items:center;gap:0.7rem;}
+.foot-brand .logo-mark{width:30px;height:30px;}
+.foot-brand b{font-family:var(--font-display);letter-spacing:0.06em;font-size:0.95rem;}
+.foot-links{display:flex;gap:1.6rem;font-family:var(--font-mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;}
+.foot-links a{text-decoration:none;color:var(--bone-dim);transition:color .2s;}
+.foot-links a:hover{color:var(--olive-bright);}
+.foot-legal{
+  max-width:1120px;margin:1.5rem auto 0;padding:1.5rem 1.75rem 0;border-top:1px solid var(--line);
+  font-family:var(--font-mono);font-size:0.72rem;color:var(--bone-dim);opacity:0.7;line-height:1.7;
+}
+
+/* ============================= RESPONSIVE ============================= */
+@media (max-width:860px){
+  .nav-toggle{display:block;}
+  nav.primary-nav{
+    position:fixed;top:66px;left:0;right:0;bottom:0;background:rgba(10,12,7,0.98);
+    flex-direction:column;align-items:stretch;padding:1.5rem;gap:0.3rem;
+    transform:translateX(100%);transition:transform .25s ease;overflow-y:auto;
+    z-index:1000; /* ensure nav overlays page content on mobile */
+  }
+  nav.primary-nav.is-open{transform:translateX(0); z-index:1000;}
+  .nav__link{padding:1rem;border-bottom:1px solid var(--line);border-radius:0;}
+  .nav__link--cta{margin-left:0;text-align:center;margin-top:0.5rem;}
+  .grid-3,.grid-2,.logo-cards,.req-list{grid-template-columns:1fr;}
+  .enlist-grid{grid-template-columns:1fr;}
+  .stat-strip{flex-direction:column;}
+  .stat{border-right:none;border-bottom:1px solid var(--line);}
+  .hero-emblem-watermark{width:320px;height:320px;right:-100px;}
+
+  .nav-toggle { z-index:1010; } /* keep the toggle above the nav so it's always clickable */
+}
+</style>
+</head>
+<body>
+
+<a href="#page-home-anchor" class="skip-link">Skip to content</a>
+
+<div class="backdrop" aria-hidden="true"><svg viewBox="0 0 1200 900" preserveAspectRatio="none">
+  <path d="M-50,150 Q200,80 500,160 T1250,120" fill="none" stroke="#7c8a52" stroke-width="1.5"/>
+  <path d="M-50,260 Q220,190 520,270 T1250,230" fill="none" stroke="#7c8a52" stroke-width="1.5"/>
+  <path d="M-50,600 Q250,520 560,610 T1250,560" fill="none" stroke="#7c8a52" stroke-width="1.5"/>
+  <path d="M-50,720 Q260,650 580,730 T1250,680" fill="none" stroke="#7c8a52" stroke-width="1.5"/>
+  <path d="M-50,850 Q280,790 600,860 T1250,810" fill="none" stroke="#7c8a52" stroke-width="1.5"/>
+</svg></div>
+<div class="backdrop-grid" aria-hidden="true"></div>
+
+<header class="site-head">
+  <a href="#/home" class="brand">
+    <span class="logo-mark" data-emblem="mark" aria-hidden="true"></span>
+    <span class="brand-word">TASK FORCE REAPER<small>REFORGER MILSIM UNIT</small></span>
+  </a>
+  <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+  <nav class="primary-nav" id="primaryNav">
+    <a href="#/home" class="nav__link" data-page="home">Home</a>
+    <a href="#/briefing" class="nav__link" data-page="briefing">Briefing</a>
+    <a href="#/sops" class="nav__link" data-page="sops">SOPs</a>
+    <a href="#/structure" class="nav__link" data-page="structure">Structure</a>
+    <a href="#/selection" class="nav__link" data-page="selection">Selection</a>
+    <a href="#/field-notes" class="nav__link" data-page="field-notes">Field Notes</a>
+    <a href="#/enlist" class="nav__link nav__link--cta" data-page="enlist">Enlist</a>
+  </nav>
+</header>
+
+<main id="page-home-anchor">
+
+<!-- ============================= HOME ============================= -->
+<section class="page" id="page-home" data-page="home">
+  <div class="hero wrap">
+    <span class="logo-mark hero-emblem-watermark" data-emblem="mark" aria-hidden="true"></span>
+    <div class="status-line">
+      <span class="status-dot" aria-hidden="true"></span>
+      <span id="typeLine"></span><span class="type-cursor" aria-hidden="true"></span>
+    </div>
+    <h1>TASK FORCE<br><span>REAPER</span></h1>
+    <p class="lead">We do not miss. TFR runs structured, realism-first operations in Arma Reforger — a real chain of command, a real training pipeline, and operators who show up.</p>
+    <div class="btn-row">
+      <a href="#/enlist" class="btn btn--primary">Enlist Now</a>
+      <a href="#/briefing" class="btn btn--ghost">Read The Briefing</a>
+    </div>
+    <div class="stat-strip">
+      <div class="stat"><b>2026</b><span>Established</span></div>
+      <div class="stat"><b>NEW</b><span>Status</span></div>
+      <div class="stat"><b>ACTIVE</b><span>Recruiting</span></div>
+      <div class="stat"><b>ET</b><span>Command Timezone</span></div>
+    </div>
+  </div>
+
+  <section class="block">
+    <div class="wrap">
+      <div class="section-intro">
+        <span class="eyebrow">Ethos</span>
+        <h2>Three things we don't compromise on</h2>
+      </div>
+      <div class="grid-3">
+        <div class="card"><span class="index">01</span><h3>Discipline</h3><p>Comms stay clean, formations stay tight, orders get followed. That's the baseline, not the bar.</p></div>
+        <div class="card"><span class="index">02</span><h3>Brotherhood</h3><p>We keep the roster tight on purpose. You'll know every name in your squad, not just their gamertag.</p></div>
+        <div class="card"><span class="index">03</span><h3>Realism</h3><p>Historically-grounded loadouts and real tactics. This isn't a deathmatch server with extra steps.</p></div>
+      </div>
+    </div>
+  </section>
+
+</section>
+
+<!-- ============================= BRIEFING ============================= -->
+<section class="page" id="page-briefing" data-page="briefing">
+  <div class="wrap block">
+    <span class="eyebrow">Briefing</span>
+    <h1 style="margin:0.5rem 0 3rem;">Everything before you request access</h1>
+
+    <div class="briefing-section">
+      <h2>Origin</h2>
+      <p class="lead">Task Force Reaper started with a handful of Reforger players who were done with disorganized public lobbies — no comms discipline, no plan, no accountability when things fell apart.</p>
+      <p>We built TFR to run operations the way they're supposed to run: a real command structure, a real training pipeline, and operators who actually show up. No randoms, no dead weight, no ghost roster.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>Why Reforger, only Reforger</h2>
+      <p class="lead">We're a single-game unit by design.</p>
+      <p>Reforger's ballistics, logistics, and scale reward planning over reflexes — the unit that communicates and holds formation wins, not the squad with the fastest trigger fingers. We'd rather be excellent at one platform than mediocre across five.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>What we're not</h2>
+      <ul class="not-list">
+        <li>A public server with a Discord bolted on</li>
+        <li>A community you join once and never hear from again</li>
+        <li>Interested in operators who show up monthly and call it active duty</li>
+        <li>Built around any game other than Arma Reforger</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= SOPS ============================= -->
+<section class="page" id="page-sops" data-page="sops">
+  <div class="wrap block">
+    <span class="eyebrow">SOPs</span>
+    <h1 style="margin:0.5rem 0 1rem;">TASK FORCE REAPER: RULES OF SERVICE</h1>
+
+    <div class="briefing-section">
+      <h2>Respect Everyone</h2>
+      <p>Treat all members with respect. Harassment, discrimination, hate speech, or excessive toxicity will not be tolerated.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>Follow Staff Instructions</h2>
+      <p>Listen to staff and leadership during operations and in the Discord. If you disagree with a decision, discuss it respectfully after the mission.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>Keep Communications Professional</h2>
+      <p>During operations, maintain radio discipline. Avoid unnecessary chatter when mission-critical communications are taking place.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>No Griefing or Teamkilling</h2>
+      <p>Intentional teamkilling, trolling, sabotaging missions, or disrupting gameplay is strictly prohibited.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>Use Appropriate Channels</h2>
+      <p>Post content in the correct Discord channels to keep the server organized.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>No Spam</h2>
+      <p>Avoid excessive pinging, spam, or posting the same content repeatedly.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>Keep Content Appropriate</h2>
+      <p>Do not post illegal content, NSFW material, or excessively graphic real-world violence. Memes and combat-related discussions are welcome as long as they follow Discord’s Terms of Service and remain respectful.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>Promotions Are Earned</h2>
+      <p>Ranks are based on activity, teamwork, leadership, and maturity. Do not ask for promotions.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>Attend Operations Prepared</h2>
+      <p>Join operations on time, bring the required mods (if applicable), and follow mission briefings.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>No Cheating or Exploits</h2>
+      <p>The use of cheats, exploits, or unauthorized modifications is strictly forbidden.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>Represent Task Force Reaper Well</h2>
+      <p>Whether in-game or in Discord, act professionally and respectfully. Your behavior reflects on the community.</p>
+    </div>
+
+    <div class="briefing-section">
+      <h2>Have Fun</h2>
+      <p>We’re here to enjoy Arma Reforger together. Take missions seriously when required, but remember that this is a community built for teamwork and fun.</p>
+    </div>
+
+    <div style="margin-top:1.6rem;">
+      <p style="font-family:var(--font-mono);font-size:0.9rem;opacity:0.9;">SIGNED, Task Force Reaper Command</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= STRUCTURE ============================= -->
+<section class="page" id="page-structure" data-page="structure">
+  <div class="wrap block">
+    <span class="eyebrow">Structure</span>
+    <h1 style="margin:0.5rem 0 1rem;">Chain of Command</h1>
+    <p class="lead" style="margin-bottom:3rem;">TFR runs on a defined chain of command split between Command Staff and our Command Element.</p>
+
+    <h2 style="font-size:1.1rem;color:var(--olive-bright);margin-bottom:1.5rem;">Command Staff (Commissioned Officers)</h2>
+    <div class="org-level">
+      <div class="org-card"><b>Commanding Officer (CO)</b><span>Sets operational objectives and unit policy</span></div>
+      <div class="org-card"><b>Executive Officer (XO)</b><span>Runs day-to-day admin and unit operations</span></div>
+    </div>
+    
+    <div class="org-connector"></div>
+    <h2 style="font-size:1.1rem;color:var(--olive-bright);margin:2rem 0 1.5rem;text-align:center;">Command Element (Senior Enlisted)</h2>
+    <div class="org-level">
+      <div class="org-card"><b>E-9 | Command Sergeant Major (CSM)</b><span>Senior enlisted advisor to the command staff</span></div>
+      <div class="org-card"><b>E-8 | Master Sergeant (MSG)</b><span>Oversees unit standards and operations</span></div>
+      <div class="org-card"><b>E-7 | Sergeant First Class (SFC)</b><span>Leads tactical elements and field training</span></div>
+    </div>
+
+    <div class="org-connector"></div>
+    <h2 style="font-size:1.1rem;color:var(--olive-bright);margin:2rem 0 1.5rem;text-align:center;">Operational Elements</h2>
+    <div class="org-level">
+      <div class="org-card"><b>Alpha</b><span>Maneuver Element</span></div>
+      <div class="org-card"><b>Bravo</b><span>Maneuver Element</span></div>
+      <div class="org-card"><b>Recon</b><span>Scouting &amp; Overwatch</span></div>
+      <div class="org-card"><b>Aviation</b><span>Air Support &amp; Transport</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= SELECTION ============================= -->
+<section class="page" id="page-selection" data-page="selection">
+  <div class="wrap block">
+    <span class="eyebrow">Selection</span>
+    <h1 style="margin:0.5rem 0 1rem;">Getting in is a process, not a click</h1>
+    <p class="lead" style="margin-bottom:2.5rem;">Here's exactly what it looks like, start to finish.</p>
+
+    <h2 style="font-size:1.1rem;color:var(--olive-bright);">Minimum requirements</h2>
+    <div class="req-list">
+      <div class="req-item">17 years or older</div>
+      <div class="req-item">Own Arma Reforger</div>
+      <div class="req-item">Working microphone and reliable internet</div>
+      <div class="req-item">Active Discord account</div>
+      <div class="req-item">Can commit to at least 2 operations a month</div>
+      <div class="req-item">Willing to learn comms and movement basics — no milsim experience required</div>
+    </div>
+
+    <h2 style="font-size:1.1rem;color:var(--olive-bright);margin-top:3rem;">The process</h2>
+    <div class="steps">
+      <div class="step"><span class="num">1</span><div><h3>Submit</h3><p>Fill out the enlistment form or drop into our Discord and introduce yourself.</p></div></div>
+      <div class="step"><span class="num">2</span><div><h3>Interview</h3><p>A short voice chat with command staff. We're checking fit, not grilling you.</p></div></div>
+      <div class="step"><span class="num">3</span><div><h3>Basic Training</h3><p>One session covering comms discipline, movement, and safety basics.</p></div></div>
+      <div class="step"><span class="num">4</span><div><h3>Probation</h3><p>Attend operations as a probationary operator while leadership gets to know how you work.</p></div></div>
+      <div class="step"><span class="num">5</span><div><h3>Full Operator</h3><p>Roster vote, patch awarded, full access to the command structure.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= FIELD NOTES ============================= -->
+<section class="page" id="page-field-notes" data-page="field-notes">
+  <div class="wrap block">
+    <span class="eyebrow">Field Notes</span>
+    <h1 style="margin:0.5rem 0 1rem;">Insignia &amp; reference material</h1>
+    <p class="lead" style="margin-bottom:2.5rem;">Unit marks and standard-issue reference, kept here for cadre and new arrivals alike.</p>
+
+    <div class="logo-cards">
+      <div class="logo-card">
+        <span class="logo-full" data-emblem="full" aria-hidden="true"></span>
+        <b>Primary Crest</b><span>Full insignia — patches, dossiers</span>
+      </div>
+      <div class="logo-card">
+        <span class="logo-mark" data-emblem="mark" aria-hidden="true" style="margin:1.4rem auto 1rem;"></span>
+        <b>Compact Mark</b><span>Icon-only — nav, favicon, stamps</span>
+      </div>
+      <div class="logo-card">
+        <span class="logo-wordmark" data-emblem="wordmark" aria-hidden="true"></span>
+        <b>Wordmark Lockup</b><span>Horizontal — banners, letterhead</span>
+      </div>
+    </div>
+
+    <h2 style="font-size:1.1rem;color:var(--olive-bright);margin-top:3.5rem;">AO reference snippet</h2>
+    <div class="ao-panel">
+      <svg viewBox="0 0 500 220" role="img" aria-label="Stylized tactical map with contour lines, a grid overlay, and three labeled waypoint markers">
+        <rect x="0" y="0" width="500" height="220" fill="#141710"/>
+        <g stroke="#33372a" stroke-width="1">
+          <line x1="0" y1="40" x2="500" y2="40"/><line x1="0" y1="80" x2="500" y2="80"/>
+          <line x1="0" y1="120" x2="500" y2="120"/><line x1="0" y1="160" x2="500" y2="160"/>
+          <line x1="60" y1="0" x2="60" y2="220"/><line x1="130" y1="0" x2="130" y2="220"/>
+          <line x1="200" y1="0" x2="200" y2="220"/><line x1="270" y1="0" x2="270" y2="220"/>
+          <line x1="340" y1="0" x2="340" y2="220"/><line x1="410" y1="0" x2="410" y2="220"/><line x1="480" y1="0" x2="480" y2="220"/>
+        </g>
+        <path d="M-10,60 Q120,10 260,55 T520,40" fill="none" stroke="#7c8a52" stroke-width="1.5" opacity="0.6"/>
+        <path d="M-10,150 Q140,190 300,150 T520,170" fill="none" stroke="#7c8a52" stroke-width="1.5" opacity="0.6"/>
+        <g font-family="JetBrains Mono, monospace" font-size="10" fill="#c85536">
+          <circle cx="95" cy="70" r="5" fill="none" stroke="#c85536" stroke-width="1.5"/>
+          <line x1="86" y1="70" x2="104" y2="70" stroke="#c85536" stroke-width="1"/>
+          <line x1="95" y1="61" x2="95" y2="79" stroke="#c85536" stroke-width="1"/>
+          <text x="106" y="73">WP-1 GR 118-054</text>
+
+          <circle cx="300" cy="130" r="5" fill="none" stroke="#c85536" stroke-width="1.5"/>
+          <line x1="291" y1="130" x2="309" y2="130" stroke="#c85536" stroke-width="1"/>
+          <line x1="300" y1="121" x2="300" y2="139" stroke="#c85536" stroke-width="1"/>
+          <text x="311" y="133">WP-2 GR 142-097</text>
+
+          <circle cx="410" cy="60" r="5" fill="none" stroke="#aebd7c" stroke-width="1.5"/>
+          <line x1="401" y1="60" x2="419" y2="60" stroke="#aebd7c" stroke-width="1"/>
+          <line x1="410" y1="51" x2="410" y2="69" stroke="#aebd7c" stroke-width="1"/>
+          <text x="330" y="55" fill="#aebd7c">RALLY GR 101-066</text>
+        </g>
+      </svg>
+      <p style="margin-top:1rem;font-size:0.8rem;">Illustrative grid reference only — not tied to any real-world location.</p>
+    </div>
+
+    <h2 style="font-size:1.1rem;color:var(--olive-bright);margin-top:3.5rem;">Standard issue manifest</h2>
+    <table class="manifest">
+      <thead><tr><th>Item</th><th>Designation</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Combat Helmet</td><td>Mk7 pattern</td><td>Standard Issue</td></tr>
+        <tr><td>Plate Carrier</td><td>Level IV</td><td>Standard Issue</td></tr>
+        <tr><td>Primary Rifle</td><td>Faction-standard</td><td>Standard Issue</td></tr>
+        <tr><td>IFAK</td><td>Individual First Aid Kit</td><td>Mandatory</td></tr>
+        <tr><td>Radio</td><td>Squad net</td><td>Mandatory</td></tr>
+        <tr><td>NVGs</td><td>Night operations</td><td>Issued as needed</td></tr>
+      </tbody>
+    </table>
+    <span class="stamp" style="margin-top:1.5rem;">Reference — Unclassified</span>
+  </div>
+</section>
+
+<!-- ============================= ENLIST ============================= -->
+<section class="page" id="page-enlist" data-page="enlist">
+  <div class="wrap block">
+    <span class="eyebrow">Enlist</span>
+    <h1 style="margin:0.5rem 0 1rem;">Two ways in</h1>
+    <p class="lead" style="margin-bottom:2.5rem;">Pick whichever's faster for you — both land in front of command staff.</p>
+
+    <div class="enlist-grid">
+      <div class="discord-panel">
+        <h3 style="margin-bottom:0.8rem;">Fastest way in</h3>
+        <p>Join our brand new Discord and introduce yourself in #new-arrivals. Leadership reaches out directly.</p>
+        <a href="https://discord.gg/hJMSe8VSGG" target="_blank" rel="noopener noreferrer" class="btn btn--primary" style="width:100%;justify-content:center;">Join The Discord</a>
+        <p style="margin-top:1.2rem;font-size:0.78rem;opacity:0.7;">Active invite link linked directly to our unit discord server.</p>
+      </div>
+
+      <div>
+        <form class="enlist-form" id="enlistForm" novalidate>
+          <h3 class="form-section-head">Section I: Personal Identification</h3>
+          <div class="form-row">
+            <label for="discordName">Discord Username</label>
+            <input type="text" id="discordName" name="discordName" required>
+            <span class="field-error">Please provide your Discord username.</span>
+          </div>
+          <div class="form-row">
+            <label for="gamertag">Xbox / PC Gamertag</label>
+            <input type="text" id="gamertag" name="gamertag" required>
+            <span class="field-error">Please provide your Gamertag.</span>
+          </div>
+          <div class="form-row">
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" min="17" required>
+            <span class="field-error">Please provide your age (must be 17 or older).</span>
+          </div>
+          <div class="form-row">
+            <label for="tz">Operational Time Zone</label>
+            <select id="tz" name="tz" required>
+              <option value="">Select one</option>
+              <option>Eastern (EST)</option>
+              <option>Central (CST)</option>
+              <option>Mountain (MST)</option>
+              <option>Pacific (PST)</option>
+              <option>UK / GMT</option>
+              <option>Central Europe (CET)</option>
+              <option>Other</option>
+            </select>
+            <span class="field-error">Let us know your timezone.</span>
+          </div>
+
+          <h3 class="form-section-head">Section II: Technical Readiness</h3>
+          <div class="form-row">
+            <label for="platform">Platform</label>
+            <select id="platform" name="platform" required>
+              <option value="">Select one</option>
+              <option>PC</option>
+              <option>Xbox</option>
+              <option>PlayStation</option>
+            </select>
+            <span class="field-error">Please select your platform.</span>
+          </div>
+          <div class="form-row">
+            <label for="mic">Functional Microphone?</label>
+            <select id="mic" name="mic" required>
+              <option value="">Select one</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+            <span class="field-error">A functional microphone is required.</span>
+          </div>
+          <div class="form-row">
+            <label for="weekendOps">Able to attend standard weekend operations?</label>
+            <select id="weekendOps" name="weekendOps" required>
+              <option value="">Select one</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+            <span class="field-error">Please let us know your weekend availability.</span>
+          </div>
+
+          <h3 class="form-section-head">Section III: Service History &amp; Experience</h3>
+          <div class="form-row">
+            <label for="hours">Approximate hours on Arma Reforger</label>
+            <input type="text" id="hours" name="hours" required>
+            <span class="field-error">Please provide a rough estimate of your hours.</span>
+          </div>
+          <div class="form-row">
+            <label for="prevExp">Previous Milsim Experience</label>
+            <textarea id="prevExp" name="prevExp" placeholder="List units or write N/A" required></textarea>
+            <span class="field-error">Please detail previous experience or write N/A.</span>
+          </div>
+          <div class="form-row">
+            <label for="highestRank">Highest Rank / Primary Role in previous units</label>
+            <input type="text" id="highestRank" name="highestRank" placeholder="Enter here or write N/A" required>
+            <span class="field-error">Please provide your previous rank/role or write N/A.</span>
+          </div>
+
+          <h3 class="form-section-head">Section IV: Miscellaneous</h3>
+          <div class="form-row">
+            <label for="capybaras">What is your opinion on capybaras?</label>
+            <textarea id="capybaras" name="capybaras" required></textarea>
+            <span class="field-error">We must know your stance on capybaras.</span>
+          </div>
+
+          <h3 class="form-section-head">Section V: Preferred MOS (Role)</h3>
+          <p style="font-size:0.85rem; color:var(--bone-dim); margin-bottom:1rem;"><em>Note: All recruits begin as standard riflemen.</em></p>
+          <div class="form-row">
+            <label for="mos1">Primary Choice</label>
+            <select id="mos1" name="mos1" required>
+              <option value="">Select primary role</option>
+              <option>Rifleman</option>
+              <option>Assault Grenadier</option>
+              <option>Breacher</option>
+              <option>Machine Gunner</option>
+              <option>Marksman</option>
+              <option>Anti-Tank Specialist</option>
+              <option>Combat Medic</option>
+              <option>Radio Operator</option>
+              <option>Recon Operator</option>
+              <option>Aviation Specialist</option>
+            </select>
+            <span class="field-error">Please select a primary role.</span>
+          </div>
+          <div class="form-row">
+            <label for="mos2">Secondary Choice</label>
+            <select id="mos2" name="mos2" required>
+              <option value="">Select secondary role</option>
+              <option>Rifleman</option>
+              <option>Assault Grenadier</option>
+              <option>Breacher</option>
+              <option>Machine Gunner</option>
+              <option>Marksman</option>
+              <option>Anti-Tank Specialist</option>
+              <option>Combat Medic</option>
+              <option>Radio Operator</option>
+              <option>Recon Operator</option>
+              <option>Aviation Specialist</option>
+            </select>
+            <span class="field-error">Please select a secondary role.</span>
+          </div>
+
+          <h3 class="form-section-head">Section VI: Attestation</h3>
+          <div class="form-row">
+            <div class="check-row">
+              <input type="checkbox" id="rulesCheck" name="rulesCheck" required>
+              <label for="rulesCheck">I have read and understood the SOPs / Rules</label>
+            </div>
+            <span class="field-error">You must agree to continue.</span>
+          </div>
+          <div class="form-row">
+            <div class="check-row">
+              <input type="checkbox" id="recruitCheck" name="recruitCheck" required>
+              <label for="recruitCheck">I understand the Recruit Phase requirement</label>
+            </div>
+            <span class="field-error">You must agree to continue.</span>
+          </div>
+
+          <h3 class="form-section-head">Signature</h3>
+          <div class="form-row">
+            <label for="signature">Applicant Signature</label>
+            <input type="text" id="signature" name="signature" placeholder="Type your Gamertag here to agree to the above" required>
+            <span class="field-error">A signature is required to apply.</span>
+          </div>
+
+          <button type="submit" class="btn btn--primary" style="width:100%;justify-content:center;margin-top:1rem;">Submit Enlistment</button>
+        </form>
+
+        <div class="confirm-panel" id="confirmPanel" aria-live="polite">
+          <span class="stamp">Application Logged</span>
+          <h3 style="margin-top:1rem;">Transmission received</h3>
+          <p>Command staff will review your enlistment. Head into the Discord now and post your application in #website-applications, once done head into #Interview Waiting Room and someone will be with you shortly.</p>
+
+          <div style="margin-top:1rem;">
+            <label for="appText" style="display:block;font-family:var(--font-mono);font-size:0.75rem;color:var(--bone-dim);margin-bottom:0.5rem;">Copy / Paste Application</label>
+            <textarea id="appText" readonly style="width:100%;min-height:10rem;background:var(--bg-void);border:1px solid var(--line-bright);color:var(--bone);padding:0.9rem;font-family:var(--font-mono);font-size:0.9rem;"></textarea>
+            <div style="display:flex;gap:0.75rem;margin-top:0.75rem;">
+              <button id="copyAppBtn" class="btn btn--ghost" style="padding:0.8rem 1rem;">Copy Application</button>
+              <a id="discordJump" href="https://discord.gg/hJMSe8VSGG" target="_blank" rel="noopener noreferrer" class="btn btn--primary" style="display:inline-flex;align-items:center;">Open Discord</a>
+            </div>
+            <div id="copyStatus" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--bone-dim);margin-top:0.6rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-foot wrap">
+  <div class="foot-brand">
+    <span class="logo-mark" data-emblem="mark" aria-hidden="true"></span>
+    <b>TASK FORCE REAPER</b>
+  </div>
+  <div class="foot-links">
+    <a href="https://discord.gg/hJMSe8VSGG" target="_blank" rel="noopener noreferrer">Discord</a>
+    <a href="#/enlist">Enlist</a>
+    <a href="#/sops">SOPs</a>
+  </div>
+</footer>
+<div class="foot-legal">
+  © 2026 Task Force Reaper — Unit Command. Arma Reforger is a trademark of Bohemia Interactive a.s. Task Force Reaper is an independent community unit and is not affiliated with or endorsed by Bohemia Interactive.
+</div>
+
+<!-- ============================= SVG DEFS (INJECTED) ============================= -->
+<script>
+const emblemMarkSVG = `
+<svg viewBox="0 0 200 200" role="img" aria-label="Task Force Reaper crest icon">
+  <path d="M100,8 L178,38 L178,108 Q178,158 100,193 Q22,158 22,108 L22,38 Z" fill="#1c2016" stroke="#7c8a52" stroke-width="3"/>
+  <circle cx="100" cy="95" r="42" fill="none" stroke="#a8402b" stroke-width="2"/>
+  <line x1="100" y1="53" x2="100" y2="43" stroke="#a8402b" stroke-width="2"/>
+  <line x1="100" y1="137" x2="100" y2="147" stroke="#a8402b" stroke-width="2"/>
+  <line x1="58" y1="95" x2="48" y2="95" stroke="#a8402b" stroke-width="2"/>
+  <line x1="142" y1="95" x2="152" y2="95" stroke="#a8402b" stroke-width="2"/>
+  <line x1="90" y1="95" x2="110" y2="95" stroke="#a8402b" stroke-width="1.5"/>
+  <line x1="100" y1="85" x2="100" y2="105" stroke="#a8402b" stroke-width="1.5"/>
+  <ellipse cx="100" cy="80" rx="34" ry="30" fill="#e9e4d3"/>
+  <path d="M76,98 L124,98 L114,124 L86,124 Z" fill="#e9e4d3"/>
+  <polygon points="82,68 94,80 82,92 70,80" fill="#1c2016"/>
+  <polygon points="118,68 130,80 118,92 106,80" fill="#1c2016"/>
+  <polygon points="100,88 106,99 94,99" fill="#1c2016"/>
+  <line x1="86" y1="112" x2="114" y2="112" stroke="#1c2016" stroke-width="2"/>
+</svg>`;
+
+const emblemFullSVG = `
+<svg viewBox="0 0 200 230" role="img" aria-label="Task Force Reaper full crest with ribbon">
+  <path id="arcTop" d="M38,48 A64,64 0 0,1 162,48" fill="none"/>
+  <path d="M100,10 L178,42 L178,118 Q178,175 100,215 Q22,175 22,118 L22,42 Z" fill="#1c2016" stroke="#7c8a52" stroke-width="3"/>
+  <text font-family="Big Shoulders Stencil, sans-serif" font-size="13" letter-spacing="3" fill="#e9e4d3" text-anchor="middle">
+    <textPath href="#arcTop" startOffset="50%">TASK FORCE</textPath>
+  </text>
+  <circle cx="100" cy="120" r="44" fill="none" stroke="#a8402b" stroke-width="2"/>
+  <line x1="100" y1="76" x2="100" y2="66" stroke="#a8402b" stroke-width="2"/>
+  <line x1="56" y1="120" x2="46" y2="120" stroke="#a8402b" stroke-width="2"/>
+  <line x1="144" y1="120" x2="154" y2="120" stroke="#a8402b" stroke-width="2"/>
+  <line x1="90" y1="120" x2="110" y2="120" stroke="#a8402b" stroke-width="1.5"/>
+  <line x1="100" y1="110" x2="100" y2="130" stroke="#a8402b" stroke-width="1.5"/>
+  <ellipse cx="100" cy="105" rx="34" ry="30" fill="#e9e4d3"/>
+  <path d="M76,123 L124,123 L114,149 L86,149 Z" fill="#e9e4d3"/>
+  <polygon points="82,93 94,105 82,117 70,105" fill="#1c2016"/>
+  <polygon points="118,93 130,105 118,117 106,105" fill="#1c2016"/>
+  <polygon points="100,113 106,124 94,124" fill="#1c2016"/>
+  <line x1="86" y1="137" x2="114" y2="137" stroke="#1c2016" stroke-width="2"/>
+  <rect x="30" y="192" width="140" height="27" fill="#a8402b" stroke="#0a0c07" stroke-width="1"/>
+  <polygon points="30,192 30,219 14,205.5" fill="#8c3524"/>
+  <polygon points="170,192 170,219 186,205.5" fill="#8c3524"/>
+  <text x="100" y="211" text-anchor="middle" font-family="Big Shoulders Stencil, sans-serif" font-size="19" font-weight="700" letter-spacing="4" fill="#e9e4d3">REAPER</text>
+</svg>`;
+
+const emblemWordmarkSVG = `
+<svg viewBox="0 0 420 80" role="img" aria-label="Task Force Reaper wordmark">
+  <circle cx="40" cy="40" r="26" fill="none" stroke="#a8402b" stroke-width="2"/>
+  <line x1="40" y1="10" x2="40" y2="18" stroke="#a8402b" stroke-width="2"/>
+  <line x1="40" y1="62" x2="40" y2="70" stroke="#a8402b" stroke-width="2"/>
+  <line x1="10" y1="40" x2="18" y2="40" stroke="#a8402b" stroke-width="2"/>
+  <line x1="62" y1="40" x2="70" y2="40" stroke="#a8402b" stroke-width="2"/>
+  <circle cx="40" cy="40" r="4" fill="#a8402b"/>
+  <text x="86" y="34" font-family="JetBrains Mono, monospace" font-size="13" letter-spacing="3" fill="#9c9686">TASK FORCE</text>
+  <text x="86" y="60" font-family="Big Shoulders Stencil, sans-serif" font-size="27" font-weight="800" letter-spacing="2" fill="#e9e4d3">REAPER</text>
+</svg>`;
+
+document.querySelectorAll('[data-emblem="mark"]').forEach(el => el.innerHTML = emblemMarkSVG);
+document.querySelectorAll('[data-emblem="full"]').forEach(el => el.innerHTML = emblemFullSVG);
+document.querySelectorAll('[data-emblem="wordmark"]').forEach(el => el.innerHTML = emblemWordmarkSVG);
+
+/* ============================= ROUTER ============================= */
+const PAGES = [
+  {id:'home', title:'Task Force Reaper — Reforger Milsim Unit'},
+  {id:'briefing', title:'Briefing — Task Force Reaper'},
+  {id:'sops', title:'SOPs — Task Force Reaper'},
+  {id:'structure', title:'Structure — Task Force Reaper'},
+  {id:'selection', title:'Selection — Task Force Reaper'},
+  {id:'field-notes', title:'Field Notes — Task Force Reaper'},
+  {id:'enlist', title:'Enlist — Task Force Reaper'},
+];
+
+function closeMobileNav(){
+  document.getElementById('primaryNav').classList.remove('is-open');
+  document.getElementById('navToggle').setAttribute('aria-expanded','false');
+}
+
+function route(){
+  const raw = location.hash.replace('#/','').replace('#','') || 'home';
+  const valid = PAGES.some(p => p.id === raw) ? raw : 'home';
+  document.querySelectorAll('.page').forEach(sec => {
+    sec.classList.toggle('is-active', sec.id === 'page-' + valid);
+  });
+  document.querySelectorAll('.nav__link').forEach(a => {
+    const active = a.dataset.page === valid;
+    a.classList.toggle('is-active', active);
+    if(active) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current');
+  });
+  const meta = PAGES.find(p => p.id === valid);
+  if(meta) document.title = meta.title;
+  window.scrollTo(0,0);
+  closeMobileNav();
+}
+window.addEventListener('hashchange', route);
+route();
+
+document.getElementById('navToggle').addEventListener('click', () => {
+  const nav = document.getElementById('primaryNav');
+  const open = nav.classList.toggle('is-open');
+  document.getElementById('navToggle').setAttribute('aria-expanded', open ? 'true':'false');
+});
+
+/* ============================= TYPE-ON HERO LINE ============================= */
+const typeTarget = document.getElementById('typeLine');
+const fullLine = "TRANSMISSION RECEIVED // TASK FORCE REAPER ACTIVE // STATUS: RECRUITING";
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduceMotion){
+  typeTarget.textContent = fullLine;
+} else {
+  let i = 0;
+  (function typeChar(){
+    if(i <= fullLine.length){
+      typeTarget.textContent = fullLine.slice(0,i);
+      i++;
+      setTimeout(typeChar, 22);
+    }
+  })();
+}
+
+/* ============================= ENLIST FORM ============================= */
+const form = document.getElementById('enlistForm');
+const confirmPanel = document.getElementById('confirmPanel');
+form.addEventListener('submit', function(e){
+  e.preventDefault();
+  let valid = true;
+  
+  const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
+  
+  inputs.forEach(el => {
+    const row = el.closest('.form-row');
+    const ok = el.type === 'checkbox' ? el.checked : (el.value !== null && el.value.toString().trim().length > 0);
+    
+    row.classList.toggle('has-error', !ok);
+    
+    if(!ok) valid = false;
+  });
+  
+  // Additional numeric validation for age
+  const ageEl = document.getElementById('age');
+  if(ageEl.value){
+    const ageVal = parseInt(ageEl.value, 10);
+    if(isNaN(ageVal) || ageVal < 17){
+      ageEl.closest('.form-row').classList.add('has-error');
+      valid = false;
+    } else {
+      ageEl.closest('.form-row').classList.remove('has-error');
+    }
+  }
+
+  if(!valid) return;
+
+  form.style.display = 'none';
+  confirmPanel.classList.add('is-visible');
+
+  // Build formatted application text for copy/paste (no reference number)
+  const now = new Date();
+  const pad = v => (v===null||v===undefined) ? '' : v;
+  const appText = [
+    `Submitted: ${now.toLocaleString()}`,
+    ``,
+    `Discord Username: ${pad(document.getElementById('discordName').value)}`,
+    `Gamertag: ${pad(document.getElementById('gamertag').value)}`,
+    `Age: ${pad(document.getElementById('age').value)}`,
+    `Operational Time Zone: ${pad(document.getElementById('tz').value)}`,
+    `Platform: ${pad(document.getElementById('platform').value)}`,
+    `Functional Microphone?: ${pad(document.getElementById('mic').value)}`,
+    `Able to attend weekend ops?: ${pad(document.getElementById('weekendOps').value)}`,
+    ``,
+    `Approximate hours on Arma Reforger: ${pad(document.getElementById('hours').value)}`,
+    `Previous Milsim Experience: ${pad(document.getElementById('prevExp').value)}`,
+    `Highest Rank / Primary Role (previous): ${pad(document.getElementById('highestRank').value)}`,
+    ``,
+    `Opinion on capybaras: ${pad(document.getElementById('capybaras').value)}`,
+    ``,
+    `Primary MOS: ${pad(document.getElementById('mos1').value)}`,
+    `Secondary MOS: ${pad(document.getElementById('mos2').value)}`,
+    ``,
+    `Attestations:`,
+    ` - Read SOPs / Rules: ${document.getElementById('rulesCheck').checked ? 'Yes' : 'No'}`,
+    ` - Understand Recruit Phase requirement: ${document.getElementById('recruitCheck').checked ? 'Yes' : 'No'}`,
+    ``,
+    `Signature: ${pad(document.getElementById('signature').value)}`
+  ].join('\n');
+
+  const appTextEl = document.getElementById('appText');
+  appTextEl.value = appText;
+
+  // Move focus for accessibility
+  appTextEl.focus();
+  appTextEl.select();
+
+  // Scroll into view
+  confirmPanel.scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block:'center'});
+});
+
+// Copy button handler
+const copyBtn = document.getElementById('copyAppBtn');
+const copyStatus = document.getElementById('copyStatus');
+copyBtn && copyBtn.addEventListener('click', async function(){
+  const appTextEl = document.getElementById('appText');
+  if(!appTextEl) return;
+  try{
+    await navigator.clipboard.writeText(appTextEl.value);
+    copyStatus.textContent = 'Application copied to clipboard.';
+    // brief visual feedback
+    const prev = copyBtn.textContent;
+    copyBtn.textContent = 'Copied!';
+    setTimeout(()=>{ copyBtn.textContent = prev; copyStatus.textContent = ''; }, 2200);
+  }catch(err){
+    copyStatus.textContent = 'Copy failed — select the text and copy manually (Ctrl/Cmd+C).';
+  }
+});
+</script>
+</body>
+</html>
